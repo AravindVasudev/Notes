@@ -195,3 +195,97 @@
   trees, and writes commit objects that reference the top-level trees and the
   commits that came immediately before them.
 * Three main Git objects: blob, tree, commit.
+
+## [Git References](https://git-scm.com/book/en/v2/Git-Internals-Git-References)
+
+* Commit hashes are harder to remember. refs help in storing these commit hashes.
+* These are stored under `.git/refs`.
+*
+  ```sh
+  $ echo "5f5ee9da2465c80c4149c189f2db7fbd16882da3" > .git/refs/heads/foo
+  $ git log --pretty=oneline foo
+  5f5ee9da2465c80c4149c189f2db7fbd16882da3 (foo) Third Commit
+  c35ab058fb5893ceca2e2e38e6379185abe6ba7a Second Commit
+  ec06774a53bf300ced8c3d20d351f1feef5f18de First Commit
+
+  # Git provides "safer" way to update refs
+  $ git update-ref refs/heads/foo 5f5ee9da2465c80c4149c189f2db7fbd16882da3
+  ```
+* That’s basically what a branch in Git is: a simple pointer or reference to the
+  head of a line of work.
+* When you run commands like git branch <branch>, Git basically runs that
+  update-ref command to add the SHA-1 of the last commit of the branch you’re on
+  into whatever new reference you want to create.
+
+### The HEAD
+* HEAD is the symbolic reference to the branch you're currently on.
+* However in some rare cases the HEAD file may contain the SHA-1 value of a git
+  object. This happens when you checkout a tag, commit, or remote branch, which
+  puts your repository in "detached HEAD" state.
+*
+  ```sh
+  $ cat .git/HEAD
+  ref: refs/heads/main
+
+  # Git provides "safer" way to access HEAD
+  $ git symbolic-ref HEAD
+  refs/heads/main
+
+  $ git symbolic-ref HEAD refs/heads/foo
+  $ git symbolic-ref HEAD
+  refs/heads/foo
+  ```
+
+### Tags
+* 4th type of git object after blob, tree, and commit.
+* Very much like commit object -- it contains a tagger, a message, and a
+  pointer.
+* Tag object generally points to a commit rather than a tree.
+* It always points to the same commit but gives it a friendlier name.
+* Two types: annotated and lightweight.
+*
+  ```sh
+  # Lightweight tag
+  $ git tag -a v1.1 5f5ee9da2465c80c4149c189f2db7fbd16882da3 -m "Test Tag"
+  $ cat .git/refs/tags/v1.1
+  4ca040722607d54551f6438dcc94204a9ef3985b
+  $ git cat-file -p 4ca040722607d54551f6438dcc94204a9ef3985b
+  object 5f5ee9da2465c80c4149c189f2db7fbd16882da3
+  type commit
+  tag v1.1
+  tagger Aravind Vasudevan <aravindvasudev@google.com> 1668647184 +0000
+
+  Test Tag
+  ```
+* A tag can point to any git object.
+* In git's source code, the maintainer has added their GPG public key as a blob
+  object and then tagged it. You can store and tag anything!
+
+### Remotes
+* If you add a remote and push to it, Git stores the value you last pushed to
+  that remote for each branch in the refs/remotes directory.
+*
+  ```sh
+  $ git remote add origin git@github.com:AravindVasudev/Notes.git
+  $ git push origin main
+  $ cat .git/refs/remotes/origin/main
+  5f5ee9da2465c80c4149c189f2db7fbd16882da3
+  ```
+* remote refs are **read-only**.
+* Git manages them as bookmarks to the last known state of where those branches
+  were on those servers.
+
+## [Packfiles](https://git-scm.com/book/en/v2/Git-Internals-Packfiles)
+* Git compresses all the objects with zlib.
+* When you store large files within git, say you edit them, git would store
+  two independent objects. This takes up a lot of space.
+* Git can store one object fully and only the delta of the other.
+* The initial format in which Git saves objects on disk is called a “loose”
+  object format.
+* However, occasionally Git packs up several of these objects into a single
+  binary file called a “packfile” in order to save space and be more efficient.
+* Git does this if you have too many loose objects around, if you run the
+  git gc command manually, or if you push to a remote server.
+* When Git packs objects, it looks for files that are named and sized similarly,
+  and stores just the deltas from one version of the file to the next.
+* The git verify-pack plumbing command allows you to see what was packed up.
