@@ -289,3 +289,66 @@
 * When Git packs objects, it looks for files that are named and sized similarly,
   and stores just the deltas from one version of the file to the next.
 * The git verify-pack plumbing command allows you to see what was packed up.
+
+## [The Refspec](https://git-scm.com/book/en/v2/Git-Internals-The-Refspec)
+
+* Running `git remote add...` command adds a section to the repository's
+  `.git/config` file.
+* refspec format: `<optional +><src>:<dst>`
+  * `src`: pattern for references on the remote side.
+  * `dst`: those references will be tracked locally.
+  * `+`: tells Git to update the reference even if it isn’t a fast-forward.
+* If you want to only pull the master branch, the refspec would be
+  `fetch = +refs/heads/master:refs/remotes/origin/master`.
+* From Git 2.6.0, refspec can have partial globs to match multiple branches.
+
+## [Transfer Protocols](https://git-scm.com/book/en/v2/Git-Internals-Transfer-Protocols)
+
+* Two data trasnfer protocols: "dumb" protocol & "smart" protocol.
+
+### Dumb Protocol
+* If you’re setting up a repository to be served read-only over HTTP, the dumb
+  protocol is likely what will be used.
+* This requires no git specific code on the server-side during the transport
+  process, hence called "dumb".
+* The fetch process is a series of HTTP `GET` requests and the client can assume
+  the layout of the Git repository.
+
+### Smart Protocol
+* Efficient.
+* Can read local data, figure out what the client has and needs, and generate
+  a custom packfile for it.
+
+## [Maintenance and Data Recovery](https://git-scm.com/book/en/v2/Git-Internals-Maintenance-and-Data-Recovery)
+
+* Git occasinally runs a command called "auto gc". Mostly, it does nothing.
+* However, when there are a lot of loose objects or packfiles, it runs gc.
+* gc consolidates packfiles into one big packfile, and it removes objects that
+  aren't reachable from any commit and are a few months old.
+* `git gc --auto` &rarr; manually runs auto gc.
+* You can modify gc limits in `gc.auto` and `gc.autopacklimit` in config
+  settings.
+* gc will also pack up refs into a single file called `.git/packed-refs`.
+
+### Data Recovery
+* `git reflog`
+  * As you’re working, Git silently records what your HEAD is every time you change it.
+  * Each time you commit or change branches, the reflog is updated.
+  * Reflog is also updated by the git update-ref command, which is another
+    reason to use it instead of just writing the SHA-1 value to your ref files.
+  * Helpful to recover commits when you reset your branch.
+* `git fsck`
+  * Checks objects for integrity.
+  * `git fsck --full` &rarr; shows you all objects that aren't pointed to by
+    another object.
+
+### Removing Objects
+* `git count-objects` &rarr; git objects space usage.
+* Accidentally adding a large object to the repository will keep it in the repo
+  despite git gc since it is in the commit history.
+* `git verify-pack -v <pack-index>` -> gets everything in a pack, type, and
+  size.
+* `git rev-list` &rarr; List commit objects in reverse chronological order.
+* `git filter-branch`
+  * Used to rewrite history.
+  * Can be used to remove files from the commit history.
