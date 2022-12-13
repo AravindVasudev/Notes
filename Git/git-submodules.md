@@ -25,3 +25,24 @@
   - `git clone --recurse-submodules` -> Will init all submodules.
 
 ## Working on a Project with Submodules
+- To check for new work in a submodule, you can go into the directory and run
+  `git fetch` and `git merge` the upstream branch to update the local code.
+- `git submodule update --remote` -> Git will go into your submodules and fetch
+  and update for you.
+
+## Working on a Submodule
+- If you haven’t committed your changes in your submodule and you run a
+  submodule update that would cause issues, Git will fetch the changes but not
+  overwrite unsaved work in your submodule directory.
+
+## Publishing Submodule Changes
+- `git push --recurse-submodules=check` -> Ask Git to check that all your
+  submodules have been pushed properly before pushing the main project.
+  - `--recurse-submodules=check|on-demand`
+    - `check` -> will make push simply fail if any of the committed submodule
+      changes haven’t been pushed.
+    - `on-demand` -> pushes all the submodules for you.
+
+## Submodule Tips
+- `git submodule foreach 'some_command'` -> Helper to run some command for every
+  submodule.
