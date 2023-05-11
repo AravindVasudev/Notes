@@ -22,3 +22,11 @@
     * If they got a strong base, kick their knee out first, get them off base, and then sweep.
 * End the motion with switching to a mount position while keeping your collar grip.
 * Tutorial: https://youtu.be/UBf7uF5x8GQ.
+
+## Side Control
+
+### Modern hip escape from side control
+* Needs to be quick to stop the attacker from going from side control to mount.
+* Helps you get out of side control and move to close guard.
+* A little hard to execute.
+* Tutorial: TBD
